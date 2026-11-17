@@ -16,7 +16,7 @@
 | 単元 | 文法項目のまとまり(単元1〜単元5、第2章末参照) |
 | 出題タグ | 各小問が測定する文法項目(第6章のタグID T01〜T19) |
 | 誤答タグ | 誤答の原因分類(第6章のタグID T01〜T23) |
-| 解答キー | 正解・許容解・出題タグ・解説をまとめたファイル(`answers/setNN/answer_key.md`) |
+| 解答キー | 正解・許容解・出題タグ・解説をまとめたファイル(`log/setNN/answers/answer_key.md`) |
 | 解答用紙 | ユーザーが記入して提出するファイル(`problems/setNN/answer_sheet.md`) |
 
 ---
@@ -46,7 +46,7 @@
 |---|---|---|---|---|
 | A 出題 | Claude | 問題・解答用紙・語彙表を作成。解答キーの**下書き**をリポジトリ外(作業用スクラッチ領域)に作成して自己検証する | `problems/setNN/problem.md`, `problems/setNN/answer_sheet.md`, `vocab/cumulative.md` | `[setNN] 出題` |
 | B 提出 | ユーザー | `answer_sheet.md` に記入して提出(方法は 5.5) | `problems/setNN/answer_sheet.md`(記入済み) | `[setNN] 提出` |
-| C 採点 | Claude | 解答キーを `answers/` に**ここで初めて**作成し、採点結果を作成 | `answers/setNN/answer_key.md`, `grading/setNN/result.md` | `[setNN] 採点` |
+| C 採点 | Claude | 解答キーを `log/setNN/answers/` に**ここで初めて**作成し、採点結果を作成 | `log/setNN/answers/answer_key.md`, `log/setNN/grading/result.md` | `[setNN] 採点` |
 | D 弱点分析 | Claude | タグ別正答率を集計し弱点記録・履歴を更新 | `progress/weakness.md`, `progress/history.md` | C と同一コミットでよい |
 | E 次回出題 | Claude | 第7章のロジックで次セットを設計し A を実施 | 次セットの A のファイル | `[setNN+1] 出題` |
 
@@ -64,12 +64,12 @@ hang_study/
 │   └── setNN/
 │       ├── problem.md            … 問題本体(指示文・小問・配点・単語リスト)
 │       └── answer_sheet.md       … 提出用解答用紙(出題時は空欄)
-├── answers/                      … ★出題時には作成しない。採点時にのみ作成
+├── log/                          … ★採点時にのみ作成(出題時には作らない)
 │   └── setNN/
-│       └── answer_key.md         … 正解・許容解・出題タグ・解説
-├── grading/                      … 採点時に作成
-│   └── setNN/
-│       └── result.md             … 採点結果(小問別正誤・得点・誤答タグ・解説)
+│       ├── answers/
+│       │   └── answer_key.md     … 正解・許容解・出題タグ・解説
+│       └── grading/
+│           └── result.md         … 採点結果(小問別正誤・得点・誤答タグ・解説)
 ├── vocab/
 │   └── cumulative.md             … 累積語彙リスト(全既出語)
 └── progress/
@@ -77,8 +77,8 @@ hang_study/
     └── history.md                … 各回の得点履歴
 ```
 
-- **解答は出題時にユーザーが見える場所(リポジトリ内・チャット)に置かない。** `answers/` ディレクトリは採点段階(C)で初めて作成する。
-- 空ディレクトリ保持用の `.gitkeep` は作らない(`answers/` と `grading/` は採点時に中身とともに作成される)。
+- **解答は出題時にユーザーが見える場所(リポジトリ内・チャット)に置かない。** `log/setNN/answers/` ディレクトリは採点段階(C)で初めて作成する。
+- 空ディレクトリ保持用の `.gitkeep` は作らない(`log/setNN/answers/` と `log/setNN/grading/` は採点時に中身とともに作成される)。
 
 ---
 
@@ -606,7 +606,7 @@ hang_study/
 - **出題タグ**: 各小問に1〜2個。解答キーに記載。正答率の集計単位。
 - **誤答タグ**: 誤答1件につき1〜2個(原因が明確なものを優先)。例: 形容詞「크다」→「크는」は [T06]。「만들다」現在→「만들는」は [T09]。
 
-### 6.3 `answers/setNN/answer_key.md` の形式(採点時に作成)
+### 6.3 `log/setNN/answers/answer_key.md` の形式(採点時に作成)
 
 ```markdown
 # 解答キー 第1回(set01)
@@ -618,7 +618,7 @@ hang_study/
 | 5-1 | (文全体) | (あれば) | T02 | 4 | 連体形部分: ○○ |
 ```
 
-### 6.4 `grading/setNN/result.md` の形式
+### 6.4 `log/setNN/grading/result.md` の形式
 
 ```markdown
 # 採点結果 第1回(set01)
@@ -777,8 +777,8 @@ hang_study/
 4. `problem.md`・`answer_sheet.md`・語彙表に**正解(連体形そのもの)が露出していない**ことを確認する。ただし大問4・5の例題の正解は除く(例題の語 많다・배우다 は採点対象の小問で使わないこと。問題文中の他の連体形が別の小問の正解と同一にならないことも確認する)。
 
 ### 8.4 解答の保管・提示の運用(確定)
-- **出題時(段階A)**: 解答キーの下書きは**リポジトリの作業ツリー外**(セッションの作業用スクラッチ領域)に作成し、自己検証にのみ使う。`answers/` ディレクトリはリポジトリ内に作らない。チャットにも解答を書かない。`.gitignore` は使わない。
-- **採点時(段階C)**: ユーザーの提出がコミットされた後、`problem.md` から解答キーを作成(下書きが残っていれば照合して差分を確認)し、`answers/setNN/answer_key.md` として**採点結果と同じコミット**でリポジトリに追加する。
+- **出題時(段階A)**: 解答キーの下書きは**リポジトリの作業ツリー外**(セッションの作業用スクラッチ領域)に作成し、自己検証にのみ使う。`log/setNN/answers/` ディレクトリはリポジトリ内に作らない。チャットにも解答を書かない。`.gitignore` は使わない。
+- **採点時(段階C)**: ユーザーの提出がコミットされた後、`problem.md` から解答キーを作成(下書きが残っていれば照合して差分を確認)し、`log/setNN/answers/answer_key.md` として**採点結果と同じコミット**でリポジトリに追加する。
   - 根拠: 8.2 により解答は問題文から一意に再導出できるため、セッションが変わって下書きが失われても採点の公正性は損なわれない。
 - ユーザーが解答の先出しを明示的に求めた場合のみ、その指示に従う(その場合、該当回は弱点集計の対象外として `history.md` の備考に記録)。
 
@@ -801,7 +801,7 @@ hang_study/
 | `progress/weakness.md` | 6.5 の初期状態(T01〜T23 の全行、状態は「未出題」) |
 | `progress/history.md` | 6.6 の形式。set01 の行(出題日のみ記入) |
 
-- **作成しないもの**: `answers/` 配下、`grading/` 配下、`.gitignore`、`.gitkeep`。
+- **作成しないもの**: `log/setNN/answers/` 配下、`log/setNN/grading/` 配下、`.gitignore`、`.gitkeep`。
 
 ### 9.3 作業手順
 1. 第4章の語彙プールと第3章の小問設計表に従い、全小問を作成する。
@@ -825,7 +825,7 @@ hang_study/
 - [ ] `answer_sheet.md` が1-1〜5-5の55行、すべて空欄
 - [ ] `vocab/cumulative.md` が set01 使用語と一致
 - [ ] `progress/weakness.md` が T01〜T23 の全行を含み、状態が「未出題」
-- [ ] `answers/`・`grading/` ディレクトリが存在しない
+- [ ] `log/setNN/answers/`・`log/setNN/grading/` ディレクトリが存在しない
 - [ ] チャットでの完了報告に正解を書いていない
 
 ### 9.5 コミット・ブランチ運用

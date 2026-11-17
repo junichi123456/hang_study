@@ -9,7 +9,7 @@
 ## 使い方
 1. `problems/setNN/problem.md` の問題を解く(単語リストは同ファイル末尾)。
 2. `problems/setNN/answer_sheet.md` に解答を記入して提出(チャットに貼り付けでも可)。
-3. Claude が採点 → `grading/setNN/result.md` に結果、`progress/` に弱点記録。
+3. Claude が採点 → `log/setNN/grading/result.md` に結果、`progress/` に弱点記録。
 4. 弱点を踏まえて次の回(setNN+1)を出題。
 
 ## 主要ファイル
@@ -17,6 +17,6 @@
 - `problems/` … 問題と解答用紙
 - `vocab/cumulative.md` … 累積語彙リスト
 - `progress/` … 弱点記録・得点履歴
-- `grading/`, `answers/` … 採点時に作成
+- `log/setNN/answers/`, `log/setNN/grading/` … 採点時に作成(解答キーと採点結果)
 
-> 解答(`answers/`)は採点時まで公開しません。
+> 解答(`log/setNN/answers/`)は採点時まで公開しません。
