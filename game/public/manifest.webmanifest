@@ -1,0 +1,12 @@
+{
+  "name": "カベガコイ",
+  "short_name": "カベガコイ",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1F2A36",
+  "theme_color": "#1F2A36",
+  "icons": [
+    { "src": "./icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
