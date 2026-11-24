@@ -67,20 +67,31 @@ export function buildPirateScenery(scene: THREE.Scene): Scenery {
     m.position.set(x, y, z); m.castShadow = shadow; m.receiveShadow = true; root.add(m); return m;
   };
 
+  const coinGeo = new THREE.CylinderGeometry(0.17, 0.17, 0.04, 16);
+  const coinSets: [THREE.Material, THREE.Matrix4[]][] = [[gold, []], [goldDark, []]];
+  const tmp = new THREE.Object3D();
+  const addCoin = (dark: boolean, x: number, y: number, z: number, rx: number, ry: number, rz: number, parent?: THREE.Object3D) => {
+    tmp.parent = parent ?? null;
+    tmp.position.set(x, y, z); tmp.rotation.set(rx, ry, rz); tmp.updateMatrix();
+    if (parent) { parent.updateWorldMatrix(true, false); tmp.matrixWorld.multiplyMatrices(parent.matrixWorld, tmp.matrix); }
+    else tmp.matrixWorld.copy(tmp.matrix);
+    (coinSets[dark ? 1 : 0] as [THREE.Material, THREE.Matrix4[]])[1].push(tmp.matrixWorld.clone());
+  };
+
   scene.background = new THREE.Color('#150d07');
   scene.fog = new THREE.Fog('#150d07', 38, 80);
 
   // --- 卓 ---
   const tableTex = woodTexture('#6a4426', '30,16,6', 64, 3, [5, 4]);
-  const table = mesh(new THREE.BoxGeometry(44, 0.6, 30), std('#ffffff', { map: tableTex, roughness: 0.75 }), 0, TABLE_Y - 0.3, 1, false);
-  table.castShadow = false;
+  const table = mesh(new THREE.BoxGeometry(44, 0.6, 30), new THREE.MeshLambertMaterial({ map: tableTex }), 0, TABLE_Y - 0.3, 1, false);
+  table.castShadow = false; table.receiveShadow = false;
   // 卓の縁(手前の船乗りたちの傷跡風の帯)
   mesh(new THREE.BoxGeometry(44, 0.25, 0.4), std('#3c2412'), 0, TABLE_Y + 0.02, 15.8, false);
 
   // --- 後ろの壁(船室の内壁) ---
   const wallTex = woodTexture('#3b2615', '10,5,0', 48, 11, [6, 1.4]);
-  const wall = new THREE.Mesh(new THREE.PlaneGeometry(70, 22), new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.9 }));
-  wall.position.set(0, 8, -13); wall.receiveShadow = true; root.add(wall);
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(70, 22), new THREE.MeshLambertMaterial({ map: wallTex }));
+  wall.position.set(0, 8, -13); wall.receiveShadow = false; root.add(wall);
   // 梁
   for (const x of [-18, -6, 6, 18]) mesh(new THREE.BoxGeometry(0.9, 22, 0.6), std('#2a190c'), x, 8, -12.7, false);
   mesh(new THREE.BoxGeometry(70, 0.9, 0.6), std('#2a190c'), 0, 3, -12.7, false);
@@ -99,7 +110,7 @@ export function buildPirateScenery(scene: THREE.Scene): Scenery {
   const lampBody = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.35, 0.9, 8), new THREE.MeshStandardMaterial({ color: '#ffcf70', emissive: '#ff9a2e', emissiveIntensity: 1.2 }));
   lamp.add(lampBody);
   const lampCap = new THREE.Mesh(new THREE.ConeGeometry(0.6, 0.4, 8), std('#2a2a2a')); lampCap.position.y = 0.65; lamp.add(lampCap);
-  const lampLight = new THREE.PointLight('#ffb060', 90, 40, 1.6); lampLight.position.set(5, 10.5, -3); root.add(lampLight);
+  const lampLight = new THREE.PointLight("#ffb060", 0, 40, 1.6); lampLight.position.set(5, 10.5, -3); root.add(lampLight);
 
   // --- 宝箱 ---
   const chest = new THREE.Group(); chest.position.set(-7.4, TABLE_Y, -4.2); chest.rotation.y = 0.35; root.add(chest);
@@ -109,29 +120,27 @@ export function buildPirateScenery(scene: THREE.Scene): Scenery {
   lid.rotation.z = Math.PI / 2; lid.rotation.y = Math.PI / 2; lid.position.set(0, 1.0, -0.9); lid.rotation.x = -0.9; lid.castShadow = true; chest.add(lid);
   for (const x of [-1, 1]) { const band = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.04, 1.64), goldDark); band.position.set(x, 0.5, 0); chest.add(band); }
   // あふれる金貨
-  const coinGeo = new THREE.CylinderGeometry(0.17, 0.17, 0.04, 16);
-  for (let i = 0; i < 46; i++) {
+  for (let i = 0; i < 26; i++) {
     const a = r() * Math.PI * 2, rad = Math.sqrt(r()) * 0.95;
-    const c = new THREE.Mesh(coinGeo, r() > 0.25 ? gold : goldDark);
-    c.position.set(Math.cos(a) * rad * 1.1, 1.0 + (1 - rad) * 0.35 + r() * 0.1, Math.sin(a) * rad * 0.6 + 0.1);
-    c.rotation.set((r() - 0.5) * 1.2, r() * 3, (r() - 0.5) * 1.2); c.castShadow = true; chest.add(c);
+    addCoin(r() <= 0.25, Math.cos(a) * rad * 1.1, 1.0 + (1 - rad) * 0.35 + r() * 0.1, Math.sin(a) * rad * 0.6 + 0.1,
+      (r() - 0.5) * 1.2, r() * 3, (r() - 0.5) * 1.2, chest);
   }
 
   // --- 散らばる金貨と山 ---
   const skip = (x: number, z: number) => Math.abs(x) < 5.9 && z > -5.9 && z < 5.9;
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < 40; i++) {
     const x = (r() - 0.5) * 30, z = (r() - 0.5) * 22 + 1;
     if (skip(x, z)) continue;
-    const c = mesh(coinGeo, r() > 0.3 ? gold : goldDark, x, TABLE_Y + 0.02 + (r() > 0.8 ? 0.04 : 0), z, false);
-    c.rotation.set(r() > 0.9 ? 0.3 : 0, r() * 3, 0);
+    addCoin(r() <= 0.3, x, TABLE_Y + 0.02 + (r() > 0.8 ? 0.04 : 0), z, r() > 0.9 ? 0.3 : 0, r() * 3, 0);
   }
   for (const [px, pz] of [[7.2, 3.4], [-6.6, 2.2], [7.6, -1.4]] as [number, number][]) {
-    const n = 12 + Math.floor(r() * 8);
-    for (let i = 0; i < n; i++) {
-      const h = i * 0.045;
-      const c = mesh(coinGeo, gold, px + (r() - 0.5) * 0.12, TABLE_Y + 0.03 + h, pz + (r() - 0.5) * 0.12);
-      c.rotation.y = r() * 3;
-    }
+    const n = 8 + Math.floor(r() * 5);
+    for (let i = 0; i < n; i++) addCoin(false, px + (r() - 0.5) * 0.12, TABLE_Y + 0.03 + i * 0.045, pz + (r() - 0.5) * 0.12, 0, r() * 3, 0);
+  }
+  for (const [mat, ms] of coinSets) {
+    const im = new THREE.InstancedMesh(coinGeo, mat, Math.max(1, ms.length));
+    ms.forEach((m, i) => im.setMatrixAt(i, m));
+    im.count = ms.length; im.receiveShadow = true; im.castShadow = false; root.add(im);
   }
 
   // --- 宝石 ---
@@ -149,7 +158,8 @@ export function buildPirateScenery(scene: THREE.Scene): Scenery {
   const wax = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 1.1, 14), std('#efe3c2')); wax.position.y = 0.65; wax.castShadow = true; candle.add(wax);
   const flame = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), new THREE.MeshBasicMaterial({ color: '#ffd27a' }));
   flame.scale.set(1, 1.8, 1); flame.position.y = 1.45; candle.add(flame);
-  const candleLight = new THREE.PointLight('#ff9a40', 14, 14, 1.8); candleLight.position.set(7.2, TABLE_Y + 1.6, -5); root.add(candleLight);
+  const glow = new THREE.Mesh(new THREE.CircleGeometry(1.6, 24).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ff9a40', transparent: true, opacity: 0.25, depthWrite: false }));
+  glow.position.set(7.2, TABLE_Y + 0.015, -5); root.add(glow);
 
   // --- ラム酒の瓶 ---
   const glass = std('#1f5a2c', { transparent: true, opacity: 0.8, roughness: 0.1, metalness: 0.1 });
@@ -216,7 +226,7 @@ export function buildPirateScenery(scene: THREE.Scene): Scenery {
   return {
     update(t: number) {
       const f = 0.85 + 0.15 * Math.sin(t * 9) * Math.sin(t * 5.3) + 0.05 * Math.sin(t * 23);
-      candleLight.intensity = 14 * f;
+      (glow.material as THREE.MeshBasicMaterial).opacity = 0.2 * f;
       flame.scale.set(1 + 0.08 * Math.sin(t * 11), 1.8 * f, 1);
       lamp.rotation.z = 0.03 * Math.sin(t * 0.9); // 船の揺れ
       lampLight.intensity = 90 * (0.95 + 0.05 * Math.sin(t * 1.7));
