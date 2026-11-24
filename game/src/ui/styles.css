@@ -51,6 +51,6 @@ html, body { margin: 0; height: 100%; background: #1f2a36; color: #eef2f6; font-
 /* 確定ボタン: 盤面下部中央に大きく配置(「かくてい」画像アセットは未受領のため暫定の通常ボタン) */
 .btn.confirm { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 4; min-width: 200px; min-height: 60px; padding: 8px 28px; font-weight: 900; font-size: 24px; letter-spacing: .1em; box-shadow: 0 6px 14px #000a; white-space: nowrap; }
 .btn.confirm:disabled { opacity: .45; }
-.btn.confirm.ready { animation: confirm-pulse 1.1s ease-in-out infinite; }
-@keyframes confirm-pulse { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.07); } }
+.btn.confirm.ready { border-color: #ffd54f; animation: confirm-pulse 1.1s ease-in-out infinite; }
+@keyframes confirm-pulse { 0%, 100% { box-shadow: 0 6px 14px #000a, 0 0 0 0 #ffd54f00; } 50% { box-shadow: 0 6px 14px #000a, 0 0 0 8px #ffd54f88; } }
 @media (max-height: 500px) { .btn.confirm { min-width: 150px; min-height: 44px; font-size: 18px; bottom: 8px; } }
