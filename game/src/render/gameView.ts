@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import type { Cell, Edge, GameEvent, GameState, Piece, PlayerId } from '../logic';
 import { PLAYER_COLORS, NEUTRAL_WALL, edgeKey } from '../logic';
 import { updateCamera } from './camera';
+import { buildPirateScenery } from './scenery';
+import type { Scenery } from './scenery';
 import {
   MOVE_DURATION_MS, PLACE_DROP_MS, WALL_BREAK_MS, WALL_RISE_MS,
   easeOutBack, easeOutQuad, samplePath,
@@ -70,6 +72,7 @@ export class GameView {
   private territoryAlpha = 0.18;
   private territoryTarget = 0.18;
   private territoryMats: THREE.MeshBasicMaterial[] = [];
+  private scenery: Scenery | null = null;
   webglOk = true;
 
   constructor(private container: HTMLElement) {
@@ -91,8 +94,8 @@ export class GameView {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.scene.background = new THREE.Color('#1F2A36');
     this.buildStatic();
+    this.scenery = buildPirateScenery(this.scene);
     this.scene.add(this.territoryGroup, this.overlayGroup);
     this.resizeObs.observe(container);
     this.resize();
@@ -109,6 +112,7 @@ export class GameView {
     cancelAnimationFrame(this.rafId);
     document.removeEventListener('visibilitychange', this.onVis);
     this.resizeObs.disconnect();
+    this.scenery?.dispose();
     this.renderer?.dispose();
     this.canvas.remove();
     this.container.querySelector('.webgl-error')?.remove();
@@ -117,7 +121,7 @@ export class GameView {
   // ---------- static scene ----------
   private buildStatic(): void {
     const s = this.scene;
-    s.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.6));
+    s.add(new THREE.HemisphereLight(0xffe8d0, 0x3a2a1a, 0.55));
     const dir = new THREE.DirectionalLight(0xffffff, 1.0);
     dir.position.set(5, 12, 7);
     dir.castShadow = true;
@@ -163,6 +167,7 @@ export class GameView {
       n.mat.emissiveIntensity = n.piece.id === this.selectedId ? pulse : 0;
       if (n.ring.visible) (n.ring.material as THREE.MeshBasicMaterial).opacity = 0.45 + 0.25 * Math.sin(t * 4);
     }
+    this.scenery?.update(t);
     this.territoryAlpha += (this.territoryTarget - this.territoryAlpha) * 0.12;
     for (const m of this.territoryMats) m.opacity = this.territoryAlpha;
     this.renderer.render(this.scene, this.camera);
