@@ -10,7 +10,7 @@ export class Hud {
   readonly el: HTMLElement;
   private cur: HTMLElement; private phase: HTMLElement; private turn: HTMLElement;
   private scoreEls: HTMLElement[] = []; private breakEls: HTMLElement[] = [];
-  private confirmBtn: HTMLButtonElement; private cancelBtn: HTMLButtonElement;
+  readonly confirmBtn: HTMLButtonElement; private cancelBtn: HTMLButtonElement;
 
   constructor(private n: number, hd: HudHandlers) {
     this.el = h('div', { class: 'hud', 'data-testid': 'hud' });
@@ -28,12 +28,12 @@ export class Hud {
       this.scoreEls.push(sc); this.breakEls.push(br);
     }
     const btns = h('div', { class: 'hud-btns' });
-    this.confirmBtn = h('button', { class: 'btn primary', 'data-testid': 'confirm-button' }, '確定');
+    this.confirmBtn = h('button', { class: 'btn primary confirm', 'data-testid': 'confirm-button' }, '確定');
     this.cancelBtn = h('button', { class: 'btn', 'data-testid': 'cancel-button' }, 'キャンセル');
     const menu = h('button', { class: 'btn', 'data-testid': 'menu-button' }, 'メニュー');
     const rules = h('button', { class: 'btn', 'data-testid': 'hud-rules' }, 'ルール');
     this.confirmBtn.onclick = hd.confirm; this.cancelBtn.onclick = hd.cancel; menu.onclick = hd.menu; rules.onclick = hd.rules;
-    btns.append(this.confirmBtn, this.cancelBtn, menu, rules);
+    btns.append(this.cancelBtn, menu, rules); // 「かくてい」は盤面下部中央(controller が配置)
     this.el.append(this.cur, this.phase, scores, this.turn, btns);
   }
 
@@ -55,6 +55,8 @@ export class Hud {
     }
     this.confirmBtn.textContent = info.confirmLabel;
     this.confirmBtn.disabled = !info.confirmEnabled || info.busy;
+    this.confirmBtn.classList.toggle('ready', info.confirmEnabled && !info.busy);
+    this.confirmBtn.style.display = s.phase === 'finished' ? 'none' : '';
     this.cancelBtn.style.display = info.showCancel ? '' : 'none';
     this.cancelBtn.disabled = info.busy;
   }

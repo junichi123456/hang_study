@@ -8,6 +8,7 @@ import type { Overlay } from '../render/gameView';
 import { Hud } from '../ui/hud';
 import { confirmQuit, h, showResult, showRules } from '../ui/screens';
 import { TURN_BANNER_MS } from '../render/animMath';
+import { TURN_BANNERS } from '../ui/banners';
 
 interface Selection { pieceId: string | null; target: Cell | null; edge: Edge | null; move: Move | null; placeCell: Cell | null; }
 const sameCell = (a: Cell | null, b: Cell | null) => !!a && !!b && a.x === b.x && a.y === b.y;
@@ -37,6 +38,7 @@ export class Controller {
       menu: () => confirmQuit(this.root, () => this.onExit(false)),
       rules: () => showRules(this.root),
     });
+    viewEl.append(this.hud.confirmBtn);
     this.root.append(this.hud.el, viewEl);
     parent.append(this.root);
     this.view = new GameView(viewEl);
@@ -48,7 +50,7 @@ export class Controller {
     });
     this.view.sync(this.state);
     this.afterChange(true);
-    if (this.state.phase === 'move') this.banner(this.state.currentPlayer);
+    if (this.state.phase === 'move' || this.state.phase === 'placement') this.banner(this.state.currentPlayer);
   }
 
   get gameView(): GameView { return this.view; }
@@ -64,7 +66,7 @@ export class Controller {
   }
 
   private banner(p: PlayerId): void {
-    const b = h('div', { class: 'banner', 'data-testid': 'turn-banner' }, `${this.state.config.playerNames[p]}の番です`);
+    const b = h('img', { class: 'banner', 'data-testid': 'turn-banner', src: TURN_BANNERS[p] as string, alt: `${this.state.config.playerNames[p]}のターン`, draggable: 'false' });
     this.root.querySelector('.view')?.append(b);
     setTimeout(() => b.remove(), TURN_BANNER_MS);
   }
@@ -196,6 +198,7 @@ export class Controller {
     void prev;
     const started = events.find((e) => e.type === 'turnStarted');
     if (started && started.type === 'turnStarted' && next.phase === 'move') this.banner(started.player);
+    else if (next.phase === 'placement' && next.currentPlayer !== prev.currentPlayer) this.banner(next.currentPlayer);
     if (next.phase === 'finished' && next.result) {
       this.resultCleanup?.();
       this.resultCleanup = showResult(this.root, next, next.result, {
